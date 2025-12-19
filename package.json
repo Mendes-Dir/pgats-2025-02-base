@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node rest/server.js",
     "test": "echo "Error: no test specified" && exit 1",
-    "test:k6": "k6 run -e BASE_URL=http://localhost:3000 test/k6/tests/api.performance.test.js",
-    "test:k6:json": "node -e \"require('fs').mkdirSync('reports', { recursive: true })\" && k6 run -e BASE_URL=http://localhost:3000 --out json=reports/k6-report.json test/k6/tests/api.performance.test.js"
+    "test:k6": "k6 run -e BASE_URL=http://localhost:3000 test/k6/tests/api.performance.test.js"
   },
   "repository": {
     "type": "git",
