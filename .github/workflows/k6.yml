@@ -1,0 +1,52 @@
+name: k6 performance tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  k6:
+    name: Run k6 tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg2 curl
+          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Start server in background
+        run: nohup node rest/server.js > server.log 2>&1 &
+
+      - name: Wait for server
+        run: |
+          for i in {1..10}; do
+            curl -sS http://localhost:3000 && break || sleep 1
+          done
+
+      - name: Run k6 tests (JSON)
+        run: npm run test:k6:json
+        env:
+          BASE_URL: http://localhost:3000
+
+      - name: Upload k6 report
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-report
+          path: reports/k6-report.json
